@@ -110,6 +110,7 @@ bool CheckIapRequest(void)
 u32 GetIapBinSize(void)
 {
     u16 i = 0;
+    u32 size = 0;
     u8 strs_array[LEN_BYTE_SZ64+1] = "";
     
     FlashRead_SysParams(PARAM_ID_RSVD_U1, strs_array, LEN_BYTE_SZ64);
@@ -119,8 +120,13 @@ u32 GetIapBinSize(void)
             return 0;
         }
     }
+    
+    for (i=0; i<strlen((const char*)strs_array); i++) {
+        size *= 10;
+        size += strs_array[i] - '0';
+    }
 
-    return atoi((const char*)strs_array);
+    return size;
 }
 
 bool CheckIapMd5(u8 *calc_md5)
@@ -146,6 +152,10 @@ int main()
     System_Config();
     Uart1_Init();
 
+    delay_ms(3000);
+
+    SCISendDataOnISR((u8*)"9876543--",9);
+
     printf("Before delay\n");
 
     delay_ms(3000);
@@ -153,8 +163,7 @@ int main()
     printf("After delay\n");
 
     if (true == CheckIapRequest()) {// Need Move BAK into APP
-#if 0
-        u32 bin_size = GetIapBinSize();
+        u32 bin_size = GetIapBinSize();// In Bytes
         u32 in_word_count = ((bin_size+2)/3);
         u32 page_count = ((in_word_count+1023)/1024);
 
@@ -163,16 +172,16 @@ int main()
         u8 bytes_array[1024*3]={0};
         OneInstruction_t dat[1024];
         
-        printf("bin_size = %d\n", bin_size);
-
+        printf("bin_size = %ld, page_count=%ld\n", bin_size, page_count);
+#if 1
         GAgent_MD5Init(&g_ftp_md5_ctx);
         
         for (i=0; i<page_count; i++) {
-            if (0 == (page_count%1024)) {
-                flash_page = FLASH_PAGE_BAK + page_count/1024;
+            if (0 == (i%1024)) {
+                flash_page = FLASH_PAGE_BOT + page_count/1024;
             }
             
-            flash_offset = (i * 0x800) % 0x800;
+            flash_offset = (i * 0x800) % 0x10000;
 
             FlashRead_InstructionWordsToByteArray(flash_page, flash_offset, 1024, bytes_array);
             
@@ -184,31 +193,44 @@ int main()
         }
         
         GAgent_MD5Final(&g_ftp_md5_ctx, gs_ftp_res_md5);
-         
+
         CheckIapMd5(gs_ftp_res_md5);
 
         // Erase APP
-        FlashErase_LargePage(3);
-        FlashErase_LargePage(4);
+        FlashErase_LargePage(FLASH_PAGE_APP);
+        FlashErase_LargePage(FLASH_PAGE_APP+1);
 
+        printf("after erase\n");
+
+        delay_ms(3000);
+        
+        printf("before write\n");
+
+#if 1
         // BAK -> APP
         for (i=0; i<page_count; i++) {
-            if (0 == (page_count%1024)) {
-                flash_page = FLASH_PAGE_BAK + page_count/1024;
+            if (0 == (i%1024)) {
+                flash_page = FLASH_PAGE_BOT + page_count/1024;
             }
             
-            flash_offset = (i * 0x800) % 0x800;
+            flash_offset = (i * 0x800) % 0x10000;
 
             FlashRead_InstructionWordsToByteArray(flash_page, flash_offset, 1024, bytes_array);
 
             for(j=0; j<1024; j++)
             {
-                dat[i].HighLowUINT16s.HighWord=bytes_array[3*i+2];
-                dat[i].HighLowUINT16s.LowWord=bytes_array[3*i+0]+(bytes_array[3*i+1])*256;
+                dat[j].HighLowUINT16s.HighWord=bytes_array[3*j+2];
+                dat[j].HighLowUINT16s.LowWord=bytes_array[3*j+0]+(bytes_array[3*j+1])*256;
             }
 
-            FlashWrite_InstructionWords(flash_page-0x30000, flash_offset, dat, 1024);
+            printf("WR flash_address = 0x%X-%.4X\n", (flash_page-2), flash_offset);
+            FlashWrite_InstructionWords(flash_page-2, flash_offset, dat, 1024);
+            
+            delay_ms(100);
         }
+#endif
+
+        printf("after write\n");
 #endif
     } else {// Jump into APP
         (*((void(*)(void))0x10000))(); 
