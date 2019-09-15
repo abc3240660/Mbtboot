@@ -51,10 +51,10 @@ void FlashSectionMove_Test(void)
 
     printf("9876543--\n");
 
-//    FlashErase_LargePage(2);
-    FlashErase_LargePage(3);
-    FlashErase_LargePage(4);
-    FlashErase_LargePage(5);
+//    FlashErase_LargePage(2, 0);
+    FlashErase_LargePage(3, 0);
+    FlashErase_LargePage(4, 0);
+    FlashErase_LargePage(5, 0);
 
     printf("8765432--\n");
 
@@ -146,136 +146,17 @@ int main()
 { 
     u16 i = 0;
     u16 j = 0;
-    u16 flash_page = FLASH_PAGE_APP;
-    u16 flash_offset = 0;
-    static u16 wraddr=0;
-    static u8 sTestBuf20000[1024]={0};
-    static u8 gFlashBuf[1500]={0};
-    static  OneInstruction_t dat[1024];
+    u16 flash_page = 0;
+    u32 flash_offset = 0;
 
     System_Config();
     Uart1_Init();
 
     delay_ms(3000);
 
-//    SCISendDataOnISR((u8*)"9876543--",9);
-
     printf("Bootloader running...\n");
-
-#if 0
-    delay_ms(3000);
-
-    wraddr=1*0x200;  
-    FlashRead_InstructionWordsToByteArray(0,0x5000,1024/4,gFlashBuf);                        
-    for(i=0;i<256;i++)
-    {
-        dat[i].HighLowUINT16s.HighWord=gFlashBuf[3*i+2];
-        dat[i].HighLowUINT16s.LowWord=gFlashBuf[3*i+0]+(gFlashBuf[3*i+1])*256;
-    }            
-    FlashWrite_InstructionWords(2,0x2000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(2,0x3000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(2,0x4000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(2,0x8000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(2,0xA000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(2,0xF000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(3,0x0000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(3,0x8000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(3,0x9000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(3,0xF000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654350",9);
-    FlashWrite_InstructionWords(4,0x0000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654354",9);
-    FlashWrite_InstructionWords(4,0x4000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654355",9);
-    FlashWrite_InstructionWords(4,0x5000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654554",9);
-    FlashWrite_InstructionWords(4,0x5400+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654556",9);
-    FlashWrite_InstructionWords(4,0x5600+wraddr,dat,1024/4); 
-    delay_ms(1000);
-//    SCISendDataOnISR("987654558",9);
-//    DataRecord_WriteDataArray(5,0x5800+wraddr,dat,1024/4); 
-
-    SCISendDataOnISR("876666210",9);
-#endif
-
-#if 0
-    delay_ms(3000);
-
-    wraddr=1*0x200;  
-    DataRecord_ReadData(0,0x5000,1024/4,gFlashBuf);                        
-    for(i=0;i<256;i++)
-    {
-        dat[i].HighLowUINT16s.HighWord=gFlashBuf[4*i+2]+(gFlashBuf[4*i+3])*256;
-        dat[i].HighLowUINT16s.LowWord=gFlashBuf[4*i+0]+(gFlashBuf[4*i+1])*256;
-    }            
-    DataRecord_WriteDataArray(1,0x0000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    DataRecord_WriteDataArray(1,0x1000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    DataRecord_WriteDataArray(1,0x4000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    DataRecord_WriteDataArray(1,0x8000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    DataRecord_WriteDataArray(1,0xA000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    DataRecord_WriteDataArray(1,0xF000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    DataRecord_WriteDataArray(2,0x0000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    DataRecord_WriteDataArray(2,0xF000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    DataRecord_WriteDataArray(3,0xF000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    DataRecord_WriteDataArray(4,0xF000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654350",9);
-    DataRecord_WriteDataArray(5,0x0000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654354",9);
-    DataRecord_WriteDataArray(5,0x4000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654355",9);
-    DataRecord_WriteDataArray(5,0x5000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654554",9);
-    DataRecord_WriteDataArray(5,0x5400+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    SCISendDataOnISR("987654556",9);
-    DataRecord_WriteDataArray(5,0x5600+wraddr,dat,1024/4); 
-    delay_ms(1000);
-//    SCISendDataOnISR("987654558",9);
-//    DataRecord_WriteDataArray(5,0x5800+wraddr,dat,1024/4); 
-
-    SCISendDataOnISR("876555210",9);
-#endif
-
-#if 0
-    printf("Before delay\n");
-
-    delay_ms(3000);
-    
-    printf("After delay\n");
-
-    printf("before jump\n");
-    (*((void(*)(void))0x30000))(); 
-    printf("after jump\n");
         
-    if (false == CheckIapRequest()) {// Need Move BAK into APP
+    if (true == CheckIapRequest()) {// Need Move BAK into APP
         u32 bin_size = GetIapBinSize();// In Bytes
         u32 in_word_count = ((bin_size+2)/3);
         u32 page_count = ((in_word_count+1023)/1024);
@@ -286,22 +167,24 @@ int main()
         OneInstruction_t dat[1024];
         
         printf("bin_size = %ld, page_count=%ld\n", bin_size, page_count);
-#if 1
+
         GAgent_MD5Init(&g_ftp_md5_ctx);
         
+        flash_page = FLASH_PAGE_BAK;// 0x2,2000
         for (i=0; i<page_count; i++) {
-            if (0 == (i%1024)) {
-                flash_page = FLASH_PAGE_BOT + page_count/1024;
-            }
-            
-            flash_offset = (i * 0x800) % 0x10000;
+            flash_offset = FLASH_BASE_BAK + (i * 0x800);
 
+            if (0 == (flash_offset%0x10000)) {
+                flash_page = FLASH_PAGE_BAK + (flash_offset / 0x10000);
+            }
+
+            flash_offset %= 0x10000;
             FlashRead_InstructionWordsToByteArray(flash_page, flash_offset, 1024, bytes_array);
-            
+
             if (i == (page_count-1)) {
                 md5_len = bin_size % (1024*3);
             }
-            
+
             GAgent_MD5Update(&g_ftp_md5_ctx, bytes_array, md5_len);
         }
         
@@ -310,8 +193,8 @@ int main()
         CheckIapMd5(gs_ftp_res_md5);
 
         // Erase APP
-        FlashErase_LargePage(FLASH_PAGE_APP);
-        FlashErase_LargePage(FLASH_PAGE_APP+1);
+        FlashErase_LargePage(FLASH_PAGE_APP, FLASH_BASE_APP);// SIZE: 0xE000
+        FlashErase_LargePage(FLASH_PAGE_APP+1, 0);// SIZE: 0x10000
 
         printf("after erase\n");
 
@@ -319,15 +202,15 @@ int main()
         
         printf("before write\n");
 
-#if 1
         // BAK -> APP
         for (i=0; i<page_count; i++) {
-            if (0 == (i%1024)) {
-                flash_page = FLASH_PAGE_BOT + page_count/1024;
-            }
-            
-            flash_offset = (i * 0x800) % 0x10000;
+            flash_offset = FLASH_BASE_BAK + (i * 0x800);
 
+            if (0 == (flash_offset%0x10000)) {
+                flash_page = FLASH_PAGE_BAK + (flash_offset / 0x10000);
+            }
+
+            flash_offset %= 0x10000;
             FlashRead_InstructionWordsToByteArray(flash_page, flash_offset, 1024, bytes_array);
 
             for(j=0; j<1024; j++)
@@ -340,52 +223,17 @@ int main()
             FlashWrite_InstructionWords(flash_page-2, flash_offset, dat, 1024);
             
             delay_ms(100);
+
+            FlashWrite_SysParams(PARAM_ID_IAP_FLAG, (u8*)IAP_REQ_OK, 4);
         }
-#endif
 
         printf("after write\n");
-#endif
-    } else {// Jump into APP
-        printf("before jump\n");
-        (*((void(*)(void))0x30000))(); 
-        printf("after jump\n");
-    }
-#endif
-
-//    (*((void(*)(void))0x2000))();
-
-    while (1) {
-        printf("7688821--\n");
-        delay_ms(1000);
     }
 
-    SCISendDataOnISR((u8*)"9876543--",9);
-
-    SCISendDataOnISR((u8*)"8765432--",9);
-
-#if 0            
-    while(1)
-    {
-        if (300000 == test_cnt++) {
-            FlashRead_InstructionWordsToByteArray(2,0,1024/4,sTestBuf20000);
-
-            for(i=0;i<256;i++)
-            {
-                //dat[i].HighLowUINT16s.HighWord=i+i*256;
-                //dat[i].HighLowUINT16s.LowWord=i+i*256;
-                dat[i].HighLowUINT16s.HighWord=sTestBuf20000[4*i+2]+(sTestBuf20000[4*i+3])*256;
-                dat[i].HighLowUINT16s.LowWord=sTestBuf20000[4*i+0]+(sTestBuf20000[4*i+1])*256;
-            }            
-            FlashWrite_InstructionWords(3,0,dat,1024/4);
-            SCISendDataOnISR((u8*)"8888888--",9);
-            FlashWrite_InstructionWords(1,0x5000,dat,1024/4);
-        }
-        
-        if (0 == test_cnt%30000) {
-            SCISendDataOnISR((u8*)"7654321--",9);
-        }
-    }
-#endif
+    // Jump into APP
+    printf("before jump\n");
+    (*((void(*)(void))0x2000))();
+    printf("after jump\n");
 
     return 0;
 }

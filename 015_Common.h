@@ -64,11 +64,11 @@
 #define FLASH_PAGE_BOT  0x0005
 #define FLASH_BASE_BOT  0x0000
 
-#define FLASH_PAGE_APP  0x0003
-#define FLASH_BASE_APP  0x0000
+#define FLASH_PAGE_APP  0x0000
+#define FLASH_BASE_APP  0x2000
 
-#define FLASH_PAGE_BAK   0x0001
-#define FLASH_BASE_BAK   0x0000
+#define FLASH_PAGE_BAK   0x0002
+#define FLASH_BASE_BAK   0x2000
 
 #define FLASH_BASE_IP       FLASH_BASE_PARAMS
 #define FLASH_SIZE_IP       CNTR_INWORD_PER_COMM
@@ -195,12 +195,12 @@ typedef struct {
     u32 reserved_use8;
 } SYS_ENV;
 
-#define IAP_REQ_ON  "1A2B"
-#define IAP_REQ_OK  "3C4D"
-#define IAP_REQ_NG  "5E6F"// For example: MD5 Check Error
-#define IAP_REQ_OFF "8888"
+#define IAP_REQ_ON  "1A2B"// APP Set: Apply Request
+#define IAP_REQ_OK  "3C4D"// BOOT Set: IAP Success
+#define IAP_REQ_NG  "5E6F"// BOOT Set: MD5 Check Error or other Errors
+#define IAP_REQ_OFF "8888"// APP Set: IAP Finished or IDLE
 
-#define FOR_DEBUG_USE 1
+#define FOR_DEBUG_USE 0
 
 #endif
 
