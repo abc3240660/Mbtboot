@@ -172,40 +172,40 @@ int main()
         dat[i].HighLowUINT16s.HighWord=gFlashBuf[3*i+2];
         dat[i].HighLowUINT16s.LowWord=gFlashBuf[3*i+0]+(gFlashBuf[3*i+1])*256;
     }            
-    FlashWrite_InstructionWords(1,0x0000+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(2,0x2000+wraddr,dat,1024/4); 
     delay_ms(1000);
-    FlashWrite_InstructionWords(1,0x1000+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(2,0x3000+wraddr,dat,1024/4); 
     delay_ms(1000);
-    FlashWrite_InstructionWords(1,0x4000+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(2,0x4000+wraddr,dat,1024/4); 
     delay_ms(1000);
-    FlashWrite_InstructionWords(1,0x8000+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(2,0x8000+wraddr,dat,1024/4); 
     delay_ms(1000);
-    FlashWrite_InstructionWords(1,0xA000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(1,0xF000+wraddr,dat,1024/4); 
-    delay_ms(1000);
-    FlashWrite_InstructionWords(2,0x0000+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(2,0xA000+wraddr,dat,1024/4); 
     delay_ms(1000);
     FlashWrite_InstructionWords(2,0xF000+wraddr,dat,1024/4); 
     delay_ms(1000);
+    FlashWrite_InstructionWords(3,0x0000+wraddr,dat,1024/4); 
+    delay_ms(1000);
+    FlashWrite_InstructionWords(3,0x8000+wraddr,dat,1024/4); 
+    delay_ms(1000);
+    FlashWrite_InstructionWords(3,0x9000+wraddr,dat,1024/4); 
+    delay_ms(1000);
     FlashWrite_InstructionWords(3,0xF000+wraddr,dat,1024/4); 
     delay_ms(1000);
-    FlashWrite_InstructionWords(4,0xF000+wraddr,dat,1024/4); 
-    delay_ms(1000);
     SCISendDataOnISR("987654350",9);
-    FlashWrite_InstructionWords(5,0x0000+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(4,0x0000+wraddr,dat,1024/4); 
     delay_ms(1000);
     SCISendDataOnISR("987654354",9);
-    FlashWrite_InstructionWords(5,0x4000+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(4,0x4000+wraddr,dat,1024/4); 
     delay_ms(1000);
     SCISendDataOnISR("987654355",9);
-    FlashWrite_InstructionWords(5,0x5000+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(4,0x5000+wraddr,dat,1024/4); 
     delay_ms(1000);
     SCISendDataOnISR("987654554",9);
-    FlashWrite_InstructionWords(5,0x5400+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(4,0x5400+wraddr,dat,1024/4); 
     delay_ms(1000);
     SCISendDataOnISR("987654556",9);
-    FlashWrite_InstructionWords(5,0x5600+wraddr,dat,1024/4); 
+    FlashWrite_InstructionWords(4,0x5600+wraddr,dat,1024/4); 
     delay_ms(1000);
 //    SCISendDataOnISR("987654558",9);
 //    DataRecord_WriteDataArray(5,0x5800+wraddr,dat,1024/4); 
@@ -352,7 +352,7 @@ int main()
     }
 #endif
 
-    (*((void(*)(void))0x5000))();
+//    (*((void(*)(void))0x2000))();
 
     while (1) {
         printf("7688821--\n");
