@@ -162,7 +162,7 @@ int main()
 
     printf("Bootloader running...\n");
 
-#if 1
+#if 0
     delay_ms(3000);
 
     wraddr=1*0x200;  
@@ -351,6 +351,8 @@ int main()
         printf("after jump\n");
     }
 #endif
+
+    (*((void(*)(void))0x5000))();
 
     while (1) {
         printf("7688821--\n");
