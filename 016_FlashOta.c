@@ -435,3 +435,36 @@ void FlashWriteRead_ParamsTest(void)
     FlashRead_SysParams(PARAM_ID_RSVD_U7, data, 64);
     FlashRead_SysParams(PARAM_ID_RSVD_U8, data, 64);
 }
+
+u16 FlashEraseWrite_InstructionWords(u16 flash_base, u16 flash_offset, OneInstruction_t *data, u16 length)
+{
+    u16 i = 0;
+    FlashAddr_t flashAddr;
+    OneInstruction_t pageData[1024];// One Page = 1024 InstructionWord
+
+    memset(pageData, 0, sizeof(OneInstruction_t)*1024);
+    flashAddr.Uint16Addr.HighAddr = flash_base;
+
+    // Read out the whole One Page
+    for (i=0; i<1024; i++)// One Page = 1024 InstructionWord
+    {
+        flashAddr.Uint16Addr.LowAddr = flash_offset + i*2;
+        pageData[i] = InnerFlash_ReadOneInstruction(flashAddr);
+    }
+
+    flashAddr.Uint16Addr.LowAddr = flash_offset;
+    InnerFlash_EraseFlashPage(flashAddr);
+
+    delay_ms(200);
+    
+    // Modify from the pointed offset
+    // index maybe >= 1024, so need to ensure that not overflow pageData's size
+    for (i=0; i<length; i++)
+    {
+        pageData[i].UINT32 = data[i].UINT32;
+    }
+
+    InnerFlash_WriteInstructionsToFlash(flashAddr, pageData, 1024);
+
+    return 0;
+}

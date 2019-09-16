@@ -159,7 +159,7 @@ int main()
     if (true == CheckIapRequest()) {// Need Move BAK into APP
         u32 bin_size = GetIapBinSize();// In Bytes
         u32 in_word_count = ((bin_size+2)/3);
-        u32 page_count = ((in_word_count+1023)/1024);
+        u32 page_count = ((in_word_count-128+1023)/1024);
 
         u32 md5_len = 1024*3;
 
@@ -170,6 +170,28 @@ int main()
 
         GAgent_MD5Init(&g_ftp_md5_ctx);
         
+        // Read 2 * Non-Change Reset InstructionWords from 0x00000
+        FlashRead_InstructionWordsToByteArray(FLASH_PAGE_APP, 0, 1024, bytes_array);
+        for (j=0; j<2; j++)
+        {
+            dat[j].HighLowUINT16s.HighWord = bytes_array[3*j+2];
+            dat[j].HighLowUINT16s.LowWord = bytes_array[3*j+0] + (bytes_array[3*j+1])*256;
+        }
+
+        FlashRead_InstructionWordsToByteArray(FLASH_PAGE_BAK, 0, 1024, bytes_array);
+        for (j=0; j<1024; j++)
+        {
+            if (j > 1) {// Skip 2 * Non-Change Reset InstructionWords, Use the Old Data
+                dat[j].HighLowUINT16s.HighWord = bytes_array[3*j+2];
+                dat[j].HighLowUINT16s.LowWord = bytes_array[3*j+0] + (bytes_array[3*j+1])*256;
+            }
+        }
+
+        md5_len = 128 * 3;
+        GAgent_MD5Update(&g_ftp_md5_ctx, bytes_array, md5_len);
+
+        FlashEraseWrite_InstructionWords(FLASH_PAGE_APP, 0, dat, 1024);
+
         flash_page = FLASH_PAGE_BAK;// 0x2,2000
         for (i=0; i<page_count; i++) {
             flash_offset = FLASH_BASE_BAK + (i * 0x800);

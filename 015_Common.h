@@ -202,6 +202,9 @@ typedef struct {
 
 #define FOR_DEBUG_USE 0
 
+#define BIN_SIZE_INT   121348
+#define BIN_SIZE_STR  "121348"
+
 #endif
 
 //******************************************************************************
