@@ -261,7 +261,7 @@ u16 FlashRead_SysParams(PARAM_ID params_id, u8 *data, u8 length)
     data[dat_len] = 0;
 
 #ifdef PRINT_DBG_ENABLE
-    printf("ReadOut Params(%dB): %s from 0x%X-%.4X\n", FLASH_PAGE_CARD_ID, dat_len, data, flash_offset);
+    printf("ReadOut Params(%dB): %s from 0x%X-%.4X\n", dat_len, data, FLASH_PAGE_CARD_ID, (u16)flash_offset);
 #endif
 
     return dat_len;
@@ -324,9 +324,9 @@ void FlashWriteRead_ParamsTest(void)
 {
     u8 data[LEN_BYTE_SZ64 + 1] = "";
 
-    FlashWrite_SysParams(PARAM_ID_SVR_IP, (u8*)g_svr_ip, strlen((const char*)g_svr_ip));
-    FlashWrite_SysParams(PARAM_ID_SVR_PORT, (u8*)g_svr_port, strlen((const char*)g_svr_port));
-    FlashWrite_SysParams(PARAM_ID_SVR_APN, (u8*)g_svr_apn, strlen((const char*)g_svr_apn));
+//    FlashWrite_SysParams(PARAM_ID_SVR_IP, (u8*)g_svr_ip, strlen((const char*)g_svr_ip));
+//    FlashWrite_SysParams(PARAM_ID_SVR_PORT, (u8*)g_svr_port, strlen((const char*)g_svr_port));
+//    FlashWrite_SysParams(PARAM_ID_SVR_APN, (u8*)g_svr_apn, strlen((const char*)g_svr_apn));
     FlashWrite_SysParams(PARAM_ID_IAP_MD5, (u8*)"11112222333344445555666677778888", 32);
     FlashWrite_SysParams(PARAM_ID_1ST_BOOT, (u8*)"1", 1);
     FlashWrite_SysParams(PARAM_ID_ALM_ON, (u8*)"1", 1);

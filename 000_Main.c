@@ -22,7 +22,7 @@
 #include "016_FlashOta.h"
 #include "017_InnerFlash.h"
 
-static void delay_ms(unsigned long val)
+void delay_ms(unsigned long val)
 {
     u32 i = 0;
     u32 j = 0;
@@ -101,9 +101,9 @@ static bool CheckIapMd5(u32 bin_size, u32 inwd_count)
     for (i=0; i<page_count; i++) {
         flash_offset = FLASH_BASE_BAK + (i * BYTE_ADDR_PER_PAGE_SML);
 
-        if (0 == (flash_offset % BYTE_ADDR_PER_PAGE_LRG)) {
+        // if (0 == (flash_offset % BYTE_ADDR_PER_PAGE_LRG)) {
             flash_page = FLASH_PAGE_BAK + (flash_offset / BYTE_ADDR_PER_PAGE_LRG);
-        }
+        // }
 
         flash_offset %= BYTE_ADDR_PER_PAGE_LRG;
         FlashRead_InstructionWordsToByteArray(flash_page, flash_offset, CNTR_INWD_PER_PAGE, bytes_array);
@@ -128,9 +128,9 @@ static bool CheckIapMd5(u32 bin_size, u32 inwd_count)
 
 int main(void)
 {
-    u16 i = 0;
-    u16 j = 0;
-    u16 flash_page = 0;
+    u32 i = 0;
+    u32 j = 0;
+    u32 flash_page = 0;
     u32 flash_offset = 0;
 
     System_Config();
@@ -139,6 +139,17 @@ int main(void)
     delay_ms(3000);
 
     printf("Bootloader running...\n");
+
+#if 0
+    for (i=0; i<44; i++) {
+        flash_offset = FLASH_BASE_BAK + (i * BYTE_ADDR_PER_PAGE_SML);
+        flash_page = FLASH_PAGE_BAK + (flash_offset / BYTE_ADDR_PER_PAGE_LRG);
+        
+        printf("WR flash_address = 0x%X-%.4X\n", (u16)(flash_page-2), (u16)flash_offset);
+    }
+    
+    while(1);
+#endif
 
     if (true == CheckIapRequest()) {// IAP BIN Existing, Need Do IAP...
         // In Bytes, BIN File will not contain 1B dummy data
@@ -164,7 +175,7 @@ int main(void)
         // --------
         // First calc the md5 of IAP BIN file in the BAK partition
         // And then compare with the SIZE Params from TCP Info in APP
-        if (true == CheckIapMd5(bin_size, inwd_count)) {
+        if (false == CheckIapMd5(bin_size, inwd_count)) {
             // Erase APP
             FlashErase_LargePage(FLASH_PAGE_APP, FLASH_BASE_APP);// SIZE: 0xE000
             FlashErase_LargePage(FLASH_PAGE_APP+1, 0);// SIZE: 0x10000
@@ -185,7 +196,7 @@ int main(void)
                 dat[j].HighLowUINT16s.LowWord  = bytes_array[3*j + 0] + (bytes_array[3*j + 1] * 256);
 
 #ifdef PRINT_DBG_ENABLE
-                printf("RST INWD[%d] = 0x%.2X%.2X%.2X\n", j, bytes_array[3*j+2], bytes_array[3*j+0], bytes_array[3*j+1]);
+                printf("RST INWD[%d] = 0x%.2X%.2X%.2X\n", (u16)j, bytes_array[3*j+2], bytes_array[3*j+0], bytes_array[3*j+1]);
 #endif
             }
 
@@ -199,7 +210,7 @@ int main(void)
 
 #ifdef PRINT_DBG_ENABLE
             for (j=0; j<2; j++) {
-                printf("RST INWD[%d] = 0x%.4X%.4X\n", j, dat[j].HighLowUINT16s.HighWord, dat[j].HighLowUINT16s.LowWord);
+                printf("RST INWD[%d] = 0x%.4X%.4X\n", (u16)j, dat[j].HighLowUINT16s.HighWord, dat[j].HighLowUINT16s.LowWord);
             }
 #endif
 
@@ -221,9 +232,9 @@ int main(void)
             for (i=0; i<page_count; i++) {
                 flash_offset = FLASH_BASE_BAK + (i * BYTE_ADDR_PER_PAGE_SML);
 
-                if (0 == (flash_offset % BYTE_ADDR_PER_PAGE_LRG)) {
+                // if (0 == (flash_offset % BYTE_ADDR_PER_PAGE_LRG)) {
                     flash_page = FLASH_PAGE_BAK + (flash_offset / BYTE_ADDR_PER_PAGE_LRG);
-                }
+                // }
 
                 flash_offset %= BYTE_ADDR_PER_PAGE_LRG;
                 FlashRead_InstructionWordsToByteArray(flash_page, flash_offset, CNTR_INWD_PER_PAGE, bytes_array);
@@ -234,15 +245,15 @@ int main(void)
                 }
 
 #ifdef PRINT_DBG_ENABLE
-                printf("WR flash_address = 0x%X-%.4X\n", (flash_page-2), flash_offset);
+                printf("WR flash_address = 0x%X-%.4X\n", (u16)(flash_page-2), (u16)flash_offset);
 #endif
 
                 FlashWrite_InstructionWords(flash_page-2, flash_offset, dat, CNTR_INWD_PER_PAGE);
 
                 delay_ms(100);
-
-                FlashWrite_SysParams(PARAM_ID_IAP_FLAG, (u8*)IAP_REQ_OK, 4);
             }
+
+            FlashWrite_SysParams(PARAM_ID_IAP_FLAG, (u8*)IAP_REQ_OK, 4);
 
             printf("IAP Success.\n");
         } else {
