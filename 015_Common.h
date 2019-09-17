@@ -130,6 +130,14 @@
 #define FLASH_BASE_RSVD_U8  (FLASH_BASE_PARAMS + (CNTR_INWORD_PER_COMM*2 + CNTR_INWORD_PER_BIG*2 + CNTR_INWORD_PER_SMALL*15)*2)
 #define FLASH_SIZE_RSVD_U8  CNTR_INWORD_PER_SMALL
 
+#define CNTR_INWD_PER_PAGE  1024
+#define BYTE_ADDR_PER_INWD  2
+#define BYTE_DATA_PER_INWD  3
+#define CNTR_INWD_PER_BLK   128
+
+#define BYTE_ADDR_PER_PAGE_SML  0x800   // One Page
+#define BYTE_ADDR_PER_PAGE_LRG  0x10000 // One Large Page
+
 typedef unsigned char bool;
 
 // For Common
@@ -200,7 +208,9 @@ typedef struct {
 #define IAP_REQ_NG  "5E6F"// BOOT Set: MD5 Check Error or other Errors
 #define IAP_REQ_OFF "8888"// APP Set: IAP Finished or IDLE
 
-#define FOR_DEBUG_USE 0
+#define FOR_FAKE_USE 0
+
+#define PRINT_DBG_ENABLE  1
 
 #define BIN_SIZE_INT   121348
 #define BIN_SIZE_STR  "121348"

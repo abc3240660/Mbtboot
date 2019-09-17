@@ -17,26 +17,114 @@ u16 FlashRead_InstructionWordsToByteArray(u16 flash_page, u16 flash_offset, u16 
     int i = 0;
     FlashAddr_t flashAddr;
 
-    for(i=0;i<len;i++)
-    {
+    for (i=0; i<len; i++) {
         flashAddr.Uint16Addr.HighAddr = flash_page;
-        flashAddr.Uint16Addr.LowAddr = flash_offset+i*2;
+        flashAddr.Uint16Addr.LowAddr  = flash_offset + i*2;
 
-        pdata[3*i+0]=InnerFlash_ReadInstructionLow(flashAddr);
-        pdata[3*i+1]=InnerFlash_ReadInstructionLow(flashAddr)>>8;
-        pdata[3*i+2]=InnerFlash_ReadInstructionHigh(flashAddr);
+        pdata[3*i + 0] = InnerFlash_ReadInstructionLow(flashAddr);
+        pdata[3*i + 1] = InnerFlash_ReadInstructionLow(flashAddr) >> 8;
+        pdata[3*i + 2] = InnerFlash_ReadInstructionHigh(flashAddr);
     }
 
     return 0;
 }
 
-void FlashErase_OnePage(u16 flash_page, u16 flash_offset )
+void FlashErase_OnePage(u16 flash_page, u16 flash_offset)
 {
     FlashAddr_t flashAddr;
 
     flashAddr.Uint16Addr.HighAddr = flash_page;
-    flashAddr.Uint16Addr.LowAddr = flash_offset;
+    flashAddr.Uint16Addr.LowAddr  = flash_offset;
+
     InnerFlash_EraseFlashPage(flashAddr);
+}
+
+static void ParamsInfoClassfy(PARAM_ID params_id, u16 *flash_offset, u16 *flash_length)
+{
+    switch (params_id) {
+        case PARAM_ID_SVR_IP:
+            *flash_offset = FLASH_BASE_IP;
+            *flash_length = FLASH_SIZE_IP;
+            break;
+        case PARAM_ID_SVR_PORT:
+            *flash_offset = FLASH_BASE_PORT;
+            *flash_length = FLASH_SIZE_PORT;
+            break;
+        case PARAM_ID_SVR_APN:
+            *flash_offset = FLASH_BASE_APN;
+            *flash_length = FLASH_SIZE_APN;
+            break;
+        case PARAM_ID_IAP_MD5:
+            *flash_offset = FLASH_BASE_IAP_MD5;
+            *flash_length = FLASH_SIZE_IAP_MD5;
+            break;
+        case PARAM_ID_1ST_BOOT:
+            *flash_offset = FLASH_BASE_1ST;
+            *flash_length = FLASH_SIZE_1ST;
+            break;
+        case PARAM_ID_ALM_ON:
+            *flash_offset = FLASH_BASE_ALM_ON;
+            *flash_length = FLASH_SIZE_ALM_ON;
+            break;
+        case PARAM_ID_BEEP_ON:
+            *flash_offset = FLASH_BASE_BEP_ON;
+            *flash_length = FLASH_SIZE_BEP_ON;
+            break;
+        case PARAM_ID_BEEP_LEVEL:
+            *flash_offset = FLASH_BASE_BEP_LV;
+            *flash_length = FLASH_SIZE_BEP_LV;
+            break;
+        case PARAM_ID_BOOT_TM:
+            *flash_offset = FLASH_BASE_BOT_TM;
+            *flash_length = FLASH_SIZE_BOT_TM;
+            break;
+        case PARAM_ID_IAP_FLAG:
+            *flash_offset = FLASH_BASE_IAP_FG;
+            *flash_length = FLASH_SIZE_IAP_FG;
+            break;
+        case PARAM_ID_IAP_STA:
+            *flash_offset = FLASH_BASE_IAP_STA;
+            *flash_length = FLASH_SIZE_IAP_STA;
+            break;
+        case PARAM_ID_IAP_CNT:
+            *flash_offset = FLASH_BASE_IAP_CNT;
+            *flash_length = FLASH_SIZE_IAP_CNT;
+            break;
+        case PARAM_ID_RSVD_U1:
+            *flash_offset = FLASH_BASE_RSVD_U1;
+            *flash_length = FLASH_SIZE_RSVD_U1;
+            break;
+        case PARAM_ID_RSVD_U2:
+            *flash_offset = FLASH_BASE_RSVD_U2;
+            *flash_length = FLASH_SIZE_RSVD_U2;
+            break;
+        case PARAM_ID_RSVD_U3:
+            *flash_offset = FLASH_BASE_RSVD_U3;
+            *flash_length = FLASH_SIZE_RSVD_U3;
+            break;
+        case PARAM_ID_RSVD_U4:
+            *flash_offset = FLASH_BASE_RSVD_U4;
+            *flash_length = FLASH_SIZE_RSVD_U4;
+            break;
+        case PARAM_ID_RSVD_U5:
+            *flash_offset = FLASH_BASE_RSVD_U5;
+            *flash_length = FLASH_SIZE_RSVD_U5;
+            break;
+        case PARAM_ID_RSVD_U6:
+            *flash_offset = FLASH_BASE_RSVD_U6;
+            *flash_length = FLASH_SIZE_RSVD_U6;
+            break;
+        case PARAM_ID_RSVD_U7:
+            *flash_offset = FLASH_BASE_RSVD_U7;
+            *flash_length = FLASH_SIZE_RSVD_U7;
+            break;
+        case PARAM_ID_RSVD_U8:
+            *flash_offset = FLASH_BASE_RSVD_U8;
+            *flash_length = FLASH_SIZE_RSVD_U8;
+            break;
+        default :
+            break;
+    }
 }
 
 // length = Bytes Count
@@ -45,18 +133,21 @@ u16 FlashWrite_SysParams(PARAM_ID params_id, u8 *data, u16 length)
 {
     u16 i = 0;
     u16 j = 0;
-    FlashAddr_t flashAddr;
     u16 flash_offset = 0;
     u16 flash_length = 0;// InstructionWord Count
-    OneInstruction_t pageData[1024];// One Page = 1024 InstructionWord
+    FlashAddr_t flashAddr;
+    OneInstruction_t pageData[CNTR_INWD_PER_PAGE];// One Page = 1024 InstructionWord
 
-    memset(pageData, 0, sizeof(OneInstruction_t)*1024);
+    if (NULL == data) {
+        return 1;
+    }
+
+    memset(pageData, 0, sizeof(OneInstruction_t)*CNTR_INWD_PER_PAGE);
     flashAddr.Uint16Addr.HighAddr = FLASH_PAGE_PARAMS;
 
     // Read out the whole One Page
-    for(i=0;i<1024;i++)// One Page = 1024 InstructionWord
-    {
-        flashAddr.Uint16Addr.LowAddr = FLASH_BASE_PARAMS+i*2;
+    for (i=0; i<CNTR_INWD_PER_PAGE; i++) {// One Page = 1024 InstructionWord
+        flashAddr.Uint16Addr.LowAddr = FLASH_BASE_PARAMS + i*2;
         pageData[i] = InnerFlash_ReadOneInstruction(flashAddr);
     }
 
@@ -64,94 +155,13 @@ u16 FlashWrite_SysParams(PARAM_ID params_id, u8 *data, u16 length)
     InnerFlash_EraseFlashPage(flashAddr);
 
     delay_ms(200);
-    switch (params_id) {
-        case PARAM_ID_SVR_IP:
-            flash_offset = FLASH_BASE_IP;
-            flash_length = FLASH_SIZE_IP;
-            break;
-        case PARAM_ID_SVR_PORT:
-            flash_offset = FLASH_BASE_PORT;
-            flash_length = FLASH_SIZE_PORT;
-            break;
-        case PARAM_ID_SVR_APN:
-            flash_offset = FLASH_BASE_APN;
-            flash_length = FLASH_SIZE_APN;
-            break;
-        case PARAM_ID_IAP_MD5:
-            flash_offset = FLASH_BASE_IAP_MD5;
-            flash_length = FLASH_SIZE_IAP_MD5;
-            break;
-        case PARAM_ID_1ST_BOOT:
-            flash_offset = FLASH_BASE_1ST;
-            flash_length = FLASH_SIZE_1ST;
-            break;
-        case PARAM_ID_ALM_ON:
-            flash_offset = FLASH_BASE_ALM_ON;
-            flash_length = FLASH_SIZE_ALM_ON;
-            break;
-        case PARAM_ID_BEEP_ON:
-            flash_offset = FLASH_BASE_BEP_ON;
-            flash_length = FLASH_SIZE_BEP_ON;
-            break;
-        case PARAM_ID_BEEP_LEVEL:
-            flash_offset = FLASH_BASE_BEP_LV;
-            flash_length = FLASH_SIZE_BEP_LV;
-            break;
-        case PARAM_ID_BOOT_TM:
-            flash_offset = FLASH_BASE_BOT_TM;
-            flash_length = FLASH_SIZE_BOT_TM;
-            break;
-        case PARAM_ID_IAP_FLAG:
-            flash_offset = FLASH_BASE_IAP_FG;
-            flash_length = FLASH_SIZE_IAP_FG;
-            break;
-        case PARAM_ID_IAP_STA:
-            flash_offset = FLASH_BASE_IAP_STA;
-            flash_length = FLASH_SIZE_IAP_STA;
-            break;
-        case PARAM_ID_IAP_CNT:
-            flash_offset = FLASH_BASE_IAP_CNT;
-            flash_length = FLASH_SIZE_IAP_CNT;
-            break;
-        case PARAM_ID_RSVD_U1:
-            flash_offset = FLASH_BASE_RSVD_U1;
-            flash_length = FLASH_SIZE_RSVD_U1;
-            break;
-        case PARAM_ID_RSVD_U2:
-            flash_offset = FLASH_BASE_RSVD_U2;
-            flash_length = FLASH_SIZE_RSVD_U2;
-            break;
-        case PARAM_ID_RSVD_U3:
-            flash_offset = FLASH_BASE_RSVD_U3;
-            flash_length = FLASH_SIZE_RSVD_U3;
-            break;
-        case PARAM_ID_RSVD_U4:
-            flash_offset = FLASH_BASE_RSVD_U4;
-            flash_length = FLASH_SIZE_RSVD_U4;
-            break;
-        case PARAM_ID_RSVD_U5:
-            flash_offset = FLASH_BASE_RSVD_U5;
-            flash_length = FLASH_SIZE_RSVD_U5;
-            break;
-        case PARAM_ID_RSVD_U6:
-            flash_offset = FLASH_BASE_RSVD_U6;
-            flash_length = FLASH_SIZE_RSVD_U6;
-            break;
-        case PARAM_ID_RSVD_U7:
-            flash_offset = FLASH_BASE_RSVD_U7;
-            flash_length = FLASH_SIZE_RSVD_U7;
-            break;
-        case PARAM_ID_RSVD_U8:
-            flash_offset = FLASH_BASE_RSVD_U8;
-            flash_length = FLASH_SIZE_RSVD_U8;
-            break;
-        default :
-            break;
-    }
 
+    ParamsInfoClassfy(params_id, &flash_offset, &flash_length);
     flashAddr.Uint16Addr.LowAddr = flash_offset;
 
+#ifdef PRINT_DBG_ENABLE
     printf("flash_offset = 0x%.4X, flash_length = %d, index = %d\n", flash_offset, flash_length, (flash_offset-FLASH_BASE_IP)/2);
+#endif
 
     // Modify from the pointed offset
     // index maybe >= 1024, so need to ensure that not overflow pageData's size
@@ -160,25 +170,25 @@ u16 FlashWrite_SysParams(PARAM_ID params_id, u8 *data, u16 length)
             break;
         }
 
-        pageData[i+(flash_offset-FLASH_BASE_IP)/2].HighLowUINT16s.HighWord = data[j*3];
+        pageData[i + (flash_offset-FLASH_BASE_IP)/2].HighLowUINT16s.HighWord = data[j*3];
 
         if ((j*3+1) >= length) {
             break;
         }
 
-        pageData[i+(flash_offset-FLASH_BASE_IP)/2].HighLowUINT16s.LowWord = data[j*3+1] << 8;
+        pageData[i + (flash_offset-FLASH_BASE_IP)/2].HighLowUINT16s.LowWord = data[j*3+1] << 8;
 
         if ((j*3+2) >= length) {
             break;
         }
 
-        pageData[i+(flash_offset-FLASH_BASE_IP)/2].HighLowUINT16s.LowWord += data[j*3+2];
-        
+        pageData[i + (flash_offset-FLASH_BASE_IP)/2].HighLowUINT16s.LowWord += data[j*3+2];
+
         j++;
     }
 
     flashAddr.Uint16Addr.LowAddr = FLASH_BASE_PARAMS;
-    InnerFlash_WriteInstructionsToFlash(flashAddr,pageData,1024);
+    InnerFlash_WriteInstructionsToFlash(flashAddr, pageData, CNTR_INWD_PER_PAGE);
 
     return 0;
 }
@@ -187,108 +197,31 @@ u16 FlashWrite_SysParams(PARAM_ID params_id, u8 *data, u16 length)
 u16 FlashRead_SysParams(PARAM_ID params_id, u8 *data, u8 length)
 {
     u16 i = 0;
-    u16 dat_len = 0;
+    u16 dat_len = 0;// the length of valid data in the pointed flash section
     u16 tmpdata = 0;
-    FlashAddr_t flashAddr;
     u16 flash_offset = 0;
-    u16 flash_length = 0;// InstructionWord Count
-    OneInstruction_t pageData[1024];// One Page = 1024 InstructionWord
+    u16 flash_length = 0;// Unit: InstructionWord Count
+    FlashAddr_t flashAddr;
+    OneInstruction_t pageData[CNTR_INWD_PER_PAGE];// One Page = 1024 InstructionWord
+
+    if (NULL == data) {
+        return 0;
+    }
+
+    if (length > LEN_BYTE_SZ64) {
+        length = LEN_BYTE_SZ64;
+    }
 
     memset(data, 0, length+1);
-    memset(pageData, 0, sizeof(OneInstruction_t)*1024);
+    memset(pageData, 0, sizeof(OneInstruction_t)*CNTR_INWD_PER_PAGE);
     flashAddr.Uint16Addr.HighAddr = FLASH_PAGE_PARAMS;
 
-    delay_ms(200);
-
-    switch (params_id) {
-        case PARAM_ID_SVR_IP:
-            flash_offset = FLASH_BASE_IP;
-            flash_length = FLASH_SIZE_IP;
-            break;
-        case PARAM_ID_SVR_PORT:
-            flash_offset = FLASH_BASE_PORT;
-            flash_length = FLASH_SIZE_PORT;
-            break;
-        case PARAM_ID_SVR_APN:
-            flash_offset = FLASH_BASE_APN;
-            flash_length = FLASH_SIZE_APN;
-            break;
-        case PARAM_ID_IAP_MD5:
-            flash_offset = FLASH_BASE_IAP_MD5;
-            flash_length = FLASH_SIZE_IAP_MD5;
-            break;
-        case PARAM_ID_1ST_BOOT:
-            flash_offset = FLASH_BASE_1ST;
-            flash_length = FLASH_SIZE_1ST;
-            break;
-        case PARAM_ID_ALM_ON:
-            flash_offset = FLASH_BASE_ALM_ON;
-            flash_length = FLASH_SIZE_ALM_ON;
-            break;
-        case PARAM_ID_BEEP_ON:
-            flash_offset = FLASH_BASE_BEP_ON;
-            flash_length = FLASH_SIZE_BEP_ON;
-            break;
-        case PARAM_ID_BEEP_LEVEL:
-            flash_offset = FLASH_BASE_BEP_LV;
-            flash_length = FLASH_SIZE_BEP_LV;
-            break;
-        case PARAM_ID_BOOT_TM:
-            flash_offset = FLASH_BASE_BOT_TM;
-            flash_length = FLASH_SIZE_BOT_TM;
-            break;
-        case PARAM_ID_IAP_FLAG:
-            flash_offset = FLASH_BASE_IAP_FG;
-            flash_length = FLASH_SIZE_IAP_FG;
-            break;
-        case PARAM_ID_IAP_STA:
-            flash_offset = FLASH_BASE_IAP_STA;
-            flash_length = FLASH_SIZE_IAP_STA;
-            break;
-        case PARAM_ID_IAP_CNT:
-            flash_offset = FLASH_BASE_IAP_CNT;
-            flash_length = FLASH_SIZE_IAP_CNT;
-            break;
-        case PARAM_ID_RSVD_U1:
-            flash_offset = FLASH_BASE_RSVD_U1;
-            flash_length = FLASH_SIZE_RSVD_U1;
-            break;
-        case PARAM_ID_RSVD_U2:
-            flash_offset = FLASH_BASE_RSVD_U2;
-            flash_length = FLASH_SIZE_RSVD_U2;
-            break;
-        case PARAM_ID_RSVD_U3:
-            flash_offset = FLASH_BASE_RSVD_U3;
-            flash_length = FLASH_SIZE_RSVD_U3;
-            break;
-        case PARAM_ID_RSVD_U4:
-            flash_offset = FLASH_BASE_RSVD_U4;
-            flash_length = FLASH_SIZE_RSVD_U4;
-            break;
-        case PARAM_ID_RSVD_U5:
-            flash_offset = FLASH_BASE_RSVD_U5;
-            flash_length = FLASH_SIZE_RSVD_U5;
-            break;
-        case PARAM_ID_RSVD_U6:
-            flash_offset = FLASH_BASE_RSVD_U6;
-            flash_length = FLASH_SIZE_RSVD_U6;
-            break;
-        case PARAM_ID_RSVD_U7:
-            flash_offset = FLASH_BASE_RSVD_U7;
-            flash_length = FLASH_SIZE_RSVD_U7;
-            break;
-        case PARAM_ID_RSVD_U8:
-            flash_offset = FLASH_BASE_RSVD_U8;
-            flash_length = FLASH_SIZE_RSVD_U8;
-            break;
-        default :
-            break;
-    }
+    ParamsInfoClassfy(params_id, &flash_offset, &flash_length);
 
     // Modify from the pointed offset
     // index maybe >= 1024, so need to ensure that not overflow pageData's size
     for (i=0; i<flash_length; i++) {
-        flashAddr.Uint16Addr.LowAddr = flash_offset+i*2;
+        flashAddr.Uint16Addr.LowAddr = flash_offset + i*2;
 
         tmpdata = InnerFlash_ReadInstructionHigh(flashAddr);
 
@@ -327,7 +260,9 @@ u16 FlashRead_SysParams(PARAM_ID params_id, u8 *data, u8 length)
 
     data[dat_len] = 0;
 
-    printf("ReadOut Params(%dB): %s from 0x1-%.4X\n", dat_len, data, flash_offset);
+#ifdef PRINT_DBG_ENABLE
+    printf("ReadOut Params(%dB): %s from 0x%X-%.4X\n", FLASH_PAGE_CARD_ID, dat_len, data, flash_offset);
+#endif
 
     return dat_len;
 }
@@ -341,29 +276,26 @@ u16 FlashWrite_InstructionWords(u16 flash_base, u16 flash_offset, OneInstruction
 {
     u16 i = 0;
     FlashAddr_t flashAddr;
-    OneInstruction_t pageData[1024];// One Page = 1024 InstructionWord
+    OneInstruction_t pageData[CNTR_INWD_PER_PAGE];// One Page = 1024 InstructionWord
 
-    memset(pageData, 0, sizeof(OneInstruction_t)*1024);
+    memset(pageData, 0, sizeof(OneInstruction_t)*CNTR_INWD_PER_PAGE);
     flashAddr.Uint16Addr.HighAddr = flash_base;
 
     // Read out the whole One Page
-    for(i=0;i<1024;i++)// One Page = 1024 InstructionWord
-    {
-        flashAddr.Uint16Addr.LowAddr = flash_offset+i*2;
+    for (i=0; i<CNTR_INWD_PER_PAGE; i++) {// One Page = 1024 InstructionWord
+        flashAddr.Uint16Addr.LowAddr = flash_offset + i*2;
         pageData[i] = InnerFlash_ReadOneInstruction(flashAddr);
     }
- 
+
     flashAddr.Uint16Addr.LowAddr = flash_offset;
-    
+
     // Modify from the pointed offset
     // index maybe >= 1024, so need to ensure that not overflow pageData's size
-    for(i=0;i<length;i++)
-    {
-        //printf("XDAT = %.4X,%.4X\n", data[i].HighLowUINT16s.HighWord, data[i].HighLowUINT16s.LowWord);
+    for (i=0; i<length; i++) {
         pageData[i].UINT32 = data[i].UINT32;
     }
 
-    InnerFlash_WriteInstructionsToFlash(flashAddr,pageData,1024);
+    InnerFlash_WriteInstructionsToFlash(flashAddr, pageData, CNTR_INWD_PER_PAGE);
 
     return 0;
 }
@@ -377,7 +309,7 @@ void FlashErase_LargePage(u16 pageIndex, u16 start_addr)
 
     flashAddr.Uint16Addr.HighAddr = pageIndex;
 
-    for (offset=start_addr; offset<=0xF800; offset+=0x800) {
+    for (offset=start_addr; offset<=0xF800; offset+=BYTE_ADDR_PER_PAGE_SML) {
         flashAddr.Uint16Addr.LowAddr = offset;
         InnerFlash_EraseFlashPage(flashAddr);
 
@@ -390,11 +322,11 @@ void FlashErase_LargePage(u16 pageIndex, u16 start_addr)
 
 void FlashWriteRead_ParamsTest(void)
 {
-    u8 data[64+1] = "";
+    u8 data[LEN_BYTE_SZ64 + 1] = "";
 
-//    FlashWrite_SysParams(PARAM_ID_SVR_IP, (u8*)g_svr_ip, strlen((const char*)g_svr_ip));
-//    FlashWrite_SysParams(PARAM_ID_SVR_PORT, (u8*)g_svr_port, strlen((const char*)g_svr_port));
-//    FlashWrite_SysParams(PARAM_ID_SVR_APN, (u8*)g_svr_apn, strlen((const char*)g_svr_apn));
+    FlashWrite_SysParams(PARAM_ID_SVR_IP, (u8*)g_svr_ip, strlen((const char*)g_svr_ip));
+    FlashWrite_SysParams(PARAM_ID_SVR_PORT, (u8*)g_svr_port, strlen((const char*)g_svr_port));
+    FlashWrite_SysParams(PARAM_ID_SVR_APN, (u8*)g_svr_apn, strlen((const char*)g_svr_apn));
     FlashWrite_SysParams(PARAM_ID_IAP_MD5, (u8*)"11112222333344445555666677778888", 32);
     FlashWrite_SysParams(PARAM_ID_1ST_BOOT, (u8*)"1", 1);
     FlashWrite_SysParams(PARAM_ID_ALM_ON, (u8*)"1", 1);
@@ -440,14 +372,13 @@ u16 FlashEraseWrite_InstructionWords(u16 flash_base, u16 flash_offset, OneInstru
 {
     u16 i = 0;
     FlashAddr_t flashAddr;
-    OneInstruction_t pageData[1024];// One Page = 1024 InstructionWord
+    OneInstruction_t pageData[CNTR_INWD_PER_PAGE];// One Page = 1024 InstructionWord
 
-    memset(pageData, 0, sizeof(OneInstruction_t)*1024);
+    memset(pageData, 0, sizeof(OneInstruction_t)*CNTR_INWD_PER_PAGE);
     flashAddr.Uint16Addr.HighAddr = flash_base;
 
     // Read out the whole One Page
-    for (i=0; i<1024; i++)// One Page = 1024 InstructionWord
-    {
+    for (i=0; i<CNTR_INWD_PER_PAGE; i++) {// One Page = 1024 InstructionWord
         flashAddr.Uint16Addr.LowAddr = flash_offset + i*2;
         pageData[i] = InnerFlash_ReadOneInstruction(flashAddr);
     }
@@ -456,15 +387,14 @@ u16 FlashEraseWrite_InstructionWords(u16 flash_base, u16 flash_offset, OneInstru
     InnerFlash_EraseFlashPage(flashAddr);
 
     delay_ms(200);
-    
+
     // Modify from the pointed offset
     // index maybe >= 1024, so need to ensure that not overflow pageData's size
-    for (i=0; i<length; i++)
-    {
+    for (i=0; i<length; i++) {
         pageData[i].UINT32 = data[i].UINT32;
     }
 
-    InnerFlash_WriteInstructionsToFlash(flashAddr, pageData, 1024);
+    InnerFlash_WriteInstructionsToFlash(flashAddr, pageData, CNTR_INWD_PER_PAGE);
 
     return 0;
 }
