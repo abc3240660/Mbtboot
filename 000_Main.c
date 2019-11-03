@@ -28,7 +28,7 @@ void delay_ms(unsigned long val)
     u32 j = 0;
 
     for (i=0; i<val; i++) {
-        for (j=0; j<1150; j++) {
+        for (j=0; j<718; j++) {
             // NOP
         }
     }
@@ -146,6 +146,8 @@ int main(void)
         flash_page = FLASH_PAGE_BAK + (flash_offset / BYTE_ADDR_PER_PAGE_LRG);
         
         printf("WR flash_address = 0x%X-%.4X\n", (u16)(flash_page-2), (u16)flash_offset);
+        
+        delay_ms(1000);
     }
     
     while(1);

@@ -33,11 +33,14 @@
 #define LEN_BYTE_SZ128   128
 #define LEN_BYTE_SZ256   256
 #define LEN_BYTE_SZ512   512
+#define LEN_BYTE_SZ1024  1024
 
 #define LEN_CARD_ID      19
 #define LEN_SERIAL_NR    16
 
 #define LEN_COMMON_USE  LEN_BYTE_SZ32
+#define LEN_MD5_HEXSTR  LEN_BYTE_SZ32
+#define LEN_MD5_HEX     LEN_BYTE_SZ16
 
 // if store too more, TCP send buffer will be
 // not enough, currently LEN_MAX_SEND = 512
@@ -158,8 +161,8 @@ typedef enum {
     PARAM_ID_IAP_FLAG,
     PARAM_ID_IAP_STA,
     PARAM_ID_IAP_CNT,
-    PARAM_ID_RSVD_U1,
-    PARAM_ID_RSVD_U2,
+    PARAM_ID_RSVD_U1,// IAP BIN SIZE
+    PARAM_ID_RSVD_U2,// FactoryRstReq
     PARAM_ID_RSVD_U3,
     PARAM_ID_RSVD_U4,
     PARAM_ID_RSVD_U5,
@@ -210,6 +213,7 @@ typedef struct {
 
 #define FOR_FAKE_USE 0
 
+#define OSC_20M_USE 1
 #define PRINT_DBG_ENABLE  1
 
 #define BIN_SIZE_INT   121348

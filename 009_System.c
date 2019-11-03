@@ -10,6 +10,7 @@
  * @Create time  : 03/11/2019
 ******************************************************************************/
 // Add Support for PIC24FJ1024GA606
+#include "015_Common.h"
 
 // FSEC
 #pragma config BWRP = OFF               // Boot Segment Write-Protect bit (Boot Segment may be written)
@@ -26,6 +27,7 @@
 
 // FSIGN
 
+#ifndef OSC_20M_USE
 // FOSCSEL
 #pragma config FNOSC = PRIPLL           // Oscillator Source Selection (Primary Oscillator with PLL module (XT + PLL, HS + PLL, EC + PLL))
 #pragma config PLLMODE = PLL8X          // PLL Mode Selection (8x PLL selected)
@@ -38,6 +40,20 @@
 #pragma config PLLSS = PLL_PRI          // PLL Secondary Selection Configuration bit (PLL is fed by the Primary oscillator)
 #pragma config IOL1WAY = ON             // Peripheral pin select configuration bit (Allow only one reconfiguration)
 #pragma config FCKSM = CSDCMD           // Clock Switching Mode bits (Both Clock switching and Fail-safe Clock Monitor are disabled)
+#else
+// FOSCSEL
+#pragma config FNOSC = PRI    //Oscillator Source Selection->Primary Oscillator (XT, HS, EC)
+#pragma config PLLMODE = DISABLED    //PLL Mode Selection->No PLL used; PLLEN bit is not available
+#pragma config IESO = OFF    //Two-speed Oscillator Start-up Enable bit->Start up with user-selected oscillator source
+
+// FOSC
+#pragma config POSCMD = HS    //Primary Oscillator Mode Select bits->HS Crystal Oscillator Mode
+#pragma config OSCIOFCN = ON    //OSC2 Pin Function bit->OSC2 is general purpose digital I/O pin
+#pragma config SOSCSEL = OFF    //SOSC Power Selection Configuration bits->Digital (SCLKI) mode
+#pragma config PLLSS = PLL_PRI    //PLL Secondary Selection Configuration bit->PLL is fed by the Primary oscillator
+#pragma config IOL1WAY = ON    //Peripheral pin select configuration bit->Allow only one reconfiguration
+#pragma config FCKSM = CSECMD    //Clock Switching Mode bits->Clock switching is enabled,Fail-safe Clock Monitor is disabled
+#endif
 
 // FWDT
 #pragma config WDTPS = PS32768          // Watchdog Timer Postscaler bits (1:32,768)
