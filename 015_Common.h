@@ -18,6 +18,14 @@
 #define         SW_Minor_Version        1
 #define         SW_Release              1
 
+#define         HW_VER                  "201910041950"
+#define         SW_VER                  "201910041950"
+
+#define         IPL_HIGH                7
+#define         IPL_MID                 5
+#define         IPL_LOW                 3
+#define         IPL_DIS                 0
+
 #define         T1IPL                   5                                       // define Timer 1 IRQ priority levell for real tome Tick
 #define         T2IPL                   1                                       // define Timer 2 IRQ priority levell for real tome Tick
 
@@ -34,9 +42,14 @@
 #define LEN_BYTE_SZ256   256
 #define LEN_BYTE_SZ512   512
 #define LEN_BYTE_SZ1024  1024
+#define LEN_BYTE_SZ2048  1024
 
 #define LEN_CARD_ID      19
 #define LEN_SERIAL_NR    16
+
+#ifndef LEN_NET_TCP
+#define LEN_NET_TCP      32
+#endif
 
 #define LEN_COMMON_USE  LEN_BYTE_SZ32
 #define LEN_MD5_HEXSTR  LEN_BYTE_SZ32
@@ -55,9 +68,15 @@
 
 #define DEFAULT_HBEAT_GAP 120
 
-// 0x0800 ~ 0x0FFF(2K): Params
-// 0x1000 ~ 0x1FFF(4K): CardIDs
-
+// BIN size = 1B:00 + 3B validData
+// 2B below flash addr can store 3B validData
+// 2B below flash addr can store 4B BIN size
+// So if BIN size = 128KB, only need 64KB Flash Addr
+// 0x0800  ~ 0x0FFF(2K)    :   Params
+// 0x1000  ~ 0x1FFF(4K)    :   CardIDs
+// 0x2000  ~ 0x21FFF(128K) :   APP
+// 0x22000 ~ 0x31FFF(128K) :   BAK
+// 0x50000 ~ 0x?????(???K) :   BOT (less than 2K)
 #define FLASH_PAGE_CARD_ID  0x0000
 #define FLASH_BASE_CARD_ID  0x1000
 
@@ -211,13 +230,27 @@ typedef struct {
 #define IAP_REQ_NG  "5E6F"// BOOT Set: MD5 Check Error or other Errors
 #define IAP_REQ_OFF "8888"// APP Set: IAP Finished or IDLE
 
+#define FOR_DEBUG_USE 0
 #define FOR_FAKE_USE 0
 
-#define OSC_20M_USE 1
-#define PRINT_DBG_ENABLE  1
+// External OSC
+// #define EXT_OSC_4M_USE 1
+#define EXT_OSC_20M_USE 1
+// #define EXT_OSC_NONE_USE 1
 
-#define BIN_SIZE_INT   121348
-#define BIN_SIZE_STR  "121348"
+#define OSC_32M_USE 1
+
+#define EXT_CRYSTAL 1
+
+#define UART1_MANUAL_DBG 1
+
+#define __DEBUG 1
+
+#ifdef __DEBUG
+#define DEBUG(format,...) printf(format,##__VA_ARGS__)
+#else
+#define DEBUG(format,...)
+#endif
 
 #endif
 

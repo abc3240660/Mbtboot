@@ -27,7 +27,7 @@
 
 // FSIGN
 
-#ifndef OSC_20M_USE
+#ifdef EXT_OSC_4M_USE
 // FOSCSEL
 #pragma config FNOSC = PRIPLL           // Oscillator Source Selection (Primary Oscillator with PLL module (XT + PLL, HS + PLL, EC + PLL))
 #pragma config PLLMODE = PLL8X          // PLL Mode Selection (8x PLL selected)
@@ -40,14 +40,25 @@
 #pragma config PLLSS = PLL_PRI          // PLL Secondary Selection Configuration bit (PLL is fed by the Primary oscillator)
 #pragma config IOL1WAY = ON             // Peripheral pin select configuration bit (Allow only one reconfiguration)
 #pragma config FCKSM = CSDCMD           // Clock Switching Mode bits (Both Clock switching and Fail-safe Clock Monitor are disabled)
-#else
+#else// 20M External OSC or without External OSC
 // FOSCSEL
+#ifdef EXT_CRYSTAL
 #pragma config FNOSC = PRIPLL    //Oscillator Source Selection->Primary Oscillator (XT, HS, EC)
 #pragma config PLLMODE = PLL96DIV5    //PLL Mode Selection->No PLL used; PLLEN bit is not available
+#else
+#pragma config FNOSC = FRCPLL    //Oscillator Source Selection->Primary Oscillator (XT, HS, EC)
+#pragma config PLLMODE = PLL96DIV2    //PLL Mode Selection->No PLL used; PLLEN bit is not available
+#endif
+
 #pragma config IESO = OFF    //Two-speed Oscillator Start-up Enable bit->Start up with user-selected oscillator source
 
 // FOSC
+#ifdef EXT_CRYSTAL
 #pragma config POSCMD = HS    //Primary Oscillator Mode Select bits->HS Crystal Oscillator Mode
+#else
+#pragma config POSCMD = NONE    //Primary Oscillator Mode Select bits->HS Crystal Oscillator Mode
+#endif
+
 #pragma config OSCIOFCN = ON    //OSC2 Pin Function bit->OSC2 is general purpose digital I/O pin
 #pragma config SOSCSEL = OFF    //SOSC Power Selection Configuration bits->Digital (SCLKI) mode
 #pragma config PLLSS = PLL_PRI    //PLL Secondary Selection Configuration bit->PLL is fed by the Primary oscillator
@@ -56,9 +67,10 @@
 #endif
 
 // FWDT
-#pragma config WDTPS = PS32768          // Watchdog Timer Postscaler bits (1:32,768)
+// PS2048 + PR128 -> 8.192s
+#pragma config WDTPS = PS2048          // Watchdog Timer Postscaler bits (1:32,768)
 #pragma config FWPSA = PR128            // Watchdog Timer Prescaler bit (1:128)
-#pragma config FWDTEN = OFF              // Watchdog Timer Enable bits (WDT Enabled)
+#pragma config FWDTEN = ON_SWDTEN              // Watchdog Timer Enable bits (WDT Enabled)
 #pragma config WINDIS = OFF             // Watchdog Timer Window Enable bit (Watchdog Timer in Non-Window mode)
 #pragma config WDTWIN = WIN25           // Watchdog Timer Window Select bits (WDT Window is 25% of WDT period)
 #pragma config WDTCMX = WDTCLK          // WDT MUX Source Select bits (WDT clock source is determined by the WDTCLK Configuration bits)
@@ -90,6 +102,6 @@
 void System_Config(void)
 {
     CLKDIV = 0;
-    RCON &= 0xFFEF;
-    //RCONbits.SWDTEN = 0;
+    _WDTO = 0;// Clear Flag
+    _SWDTEN = 0;// Disable WDT
 }
